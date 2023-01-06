@@ -4,7 +4,8 @@
   "description": "Tool to create Spotify playlists from Youtube playlists",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js"
+    "test": "node index.js",
+    "server": "node src/accessServer.js"
   },
   "repository": {
     "type": "git",
