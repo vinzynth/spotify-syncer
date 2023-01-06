@@ -73,6 +73,10 @@ async function getPlaylist(playlistId) {
     return {...p, items};
 }
 
+async function getPlaylistDetails(playlistId) {
+    return get(yt.playlists, {id: playlistId});
+}
+
 async function getVideoDetails(ids = []) {
     const items = await list(yt.videos, {
         id: ids.join(','),
@@ -84,5 +88,6 @@ async function getVideoDetails(ids = []) {
 module.exports = {
     oAuth2Client,
     getPlaylist,
+    getPlaylistDetails,
     getVideoDetails
 };

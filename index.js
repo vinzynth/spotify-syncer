@@ -1,5 +1,5 @@
 const inquirer = require('inquirer');
-const {getPlaylist} = require("./src/youtubeApi");
+const {getPlaylist, getPlaylistDetails} = require("./src/youtubeApi");
 
 (async () => {
     const {url} = await inquirer.prompt([{
@@ -8,12 +8,9 @@ const {getPlaylist} = require("./src/youtubeApi");
 
     const startIdx = url.indexOf('list=') + 5;
     const endIdx = url.indexOf('&', startIdx);
-
     const id = url.substring(startIdx, endIdx < 0 ? url.length : endIdx);
 
-    console.log(startIdx, endIdx, id);
-
-    const pl = await getPlaylist(id);
+    const pl = await getPlaylistDetails(id);
 
     console.table(pl);
     debugger;
