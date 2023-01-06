@@ -1,22 +1,23 @@
 const {google} = require('googleapis');
-
+const Semaphore = require('async-mutex').Semaphore;
 const fs = require('fs');
 const path = require('path');
 
 const credentialFile = path.resolve(__dirname, '..', 'credentialsYT.json');
 const tokenFile = path.resolve(__dirname, '..', 'tokenYT.json');
 
-if(!fs.existsSync(tokenFile))
+if (!fs.existsSync(tokenFile))
     fs.writeFileSync(tokenFile, '{}');
 
 const {client_secret, client_id, redirect_uris} = require(credentialFile).installed;
 const token = require(tokenFile);
+const axios = require("axios");
 let {access_token, refresh_token} = token;
 
 let client;
 
 const oAuth2Client = () => {
-    if(client)
+    if (client)
         return client;
 
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
@@ -43,7 +44,7 @@ async function* scroll(f, o = {}) {
     const opts = {maxResults: 50, part: 'contentDetails,snippet,status,id', ...o};
     const {data: {items, nextPageToken}} = await f.bind(yt)(opts);
 
-    for (const i of items){
+    for (const i of items) {
         const r = {...i, ...i.snippet, ...i.contentDetails};
         delete r.snippet;
         delete r.contentDetails;
@@ -63,7 +64,7 @@ async function list(f, opts) {
     return res;
 }
 
-async function get(f, opts){
+async function get(f, opts) {
     return (await list(f, opts))?.[0];
 }
 
@@ -85,9 +86,60 @@ async function getVideoDetails(ids = []) {
     return {items};
 }
 
+// Fetches the music metadata from the YouTube page. Apparently the API does not provide this information. Should be
+// replaced tho as soon as possible.
+async function fetchMusicMetadata(videos = []) {
+    const semaphore = new Semaphore(20);
+
+    const promises = [];
+    for (const v of videos) {
+        const {videoId} = v;
+        v.musicMetadata = [];
+
+        promises.push(semaphore.runExclusive(async () => {
+            return axios.get('https://www.youtube.com/watch?v=' + videoId, {timeout: 10_000}).then(res => {
+                const startKey = 'videoDescriptionMusicSectionRenderer';
+                const endKey = 'premiumUpsellLink';
+                const idxStart = res?.data?.indexOf(startKey) || -1;
+                const idxEnd = res?.data?.lastIndexOf(endKey) || -1;
+                if (idxStart < 0 || idxEnd < 0)
+                    return v;
+
+                const scope = '' + res?.data?.substring(idxStart + startKey.length + 2, idxEnd - 2) + '}';
+                let json = [];
+                try {
+                    json = JSON.parse(scope);
+                } catch (e) {
+                    return v;
+                }
+
+                const musicMetadata = json.carouselLockups[0].carouselLockupRenderer.infoRows;
+                let counter = 0;
+                for (const md of musicMetadata) {
+                    const content = md?.infoRowRenderer?.defaultMetadata;
+
+                    if (content?.simpleText)
+                        v.musicMetadata.push(content.simpleText);
+                    if (content?.runs?.[0]?.text)
+                        v.musicMetadata.push(content.runs[0].text);
+
+                    if (counter++ > 2)
+                        break;
+                }
+                return v;
+            }).catch(e => {
+                console.error('Error fetching https://www.youtube.com/watch?v=' + videoId);
+                console.error(e);
+            });
+        }));
+    }
+
+    return await Promise.all(promises);
+}
+
 module.exports = {
     oAuth2Client,
     getPlaylist,
     getPlaylistDetails,
-    getVideoDetails
+    fetchMusicMetadata
 };
