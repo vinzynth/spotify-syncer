@@ -2,6 +2,8 @@ credentials*
 token*
 apikey*
 
+.idea
+
 # Logs
 logs
 *.log
