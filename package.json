@@ -4,7 +4,7 @@
   "description": "Tool to create Spotify playlists from Youtube playlists",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js",
+    "start": "node index.js",
     "server": "node src/accessServer.js"
   },
   "repository": {
@@ -28,7 +28,10 @@
   },
   "homepage": "https://github.com/vinzynth/spotify-syncer#readme",
   "dependencies": {
+    "@googleapis/youtube": "^8.0.1",
     "express": "^4.18.2",
+    "inquirer": "^8.0.0",
+    "open": "^8.4.0",
     "spotify-web-api-node": "^5.0.2"
   }
 }

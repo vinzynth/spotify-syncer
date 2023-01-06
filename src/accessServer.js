@@ -2,6 +2,7 @@ const SpotifyWebApi = require('spotify-web-api-node');
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const open = require('open');
 
 const PORT = 8888;
 const API_SCOPES = [
@@ -88,4 +89,8 @@ app.get('/callback', (req, res) => {
         });
 });
 
-app.listen(PORT, () => console.log(`Access Server up. Now log in at http://localhost:${PORT}/login with your browser.`));
+app.listen(PORT, () => {
+    console.log(`Access Server up. Now log in at http://localhost:${PORT}/login with your browser.`)
+
+    open(`http://localhost:${PORT}/login`);
+});
