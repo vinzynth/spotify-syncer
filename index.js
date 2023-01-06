@@ -1,5 +1,6 @@
 const inquirer = require('inquirer');
-const {getPlaylist, getPlaylistDetails} = require("./src/youtubeApi");
+const {getPlaylistDetails} = require("./src/youtubeApi");
+const {syncPlaylist} = require("./src/syncer");
 
 (async () => {
     const {url} = await inquirer.prompt([{
@@ -12,7 +13,10 @@ const {getPlaylist, getPlaylistDetails} = require("./src/youtubeApi");
 
     const pl = await getPlaylistDetails(id);
 
-    console.table(pl);
-    debugger;
-    // TODO: call apis
+    const {title, description} = await inquirer.prompt([
+        {type: 'input', name: 'title', message: 'Spotify playlist title:', default: pl.title + ' by ' + pl.channelTitle},
+        {type: 'input', name: 'description', message: 'Spotify playlist description:', default: 'Created with https://github.com/vinzynth/spotify-syncer'},
+    ]);
+
+    await syncPlaylist(id, title, description);
 })()
