@@ -1,0 +1,29 @@
+{
+  "name": "spotify-syncer",
+  "version": "1.0.0",
+  "description": "Tool to create Spotify playlists from Youtube playlists",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vinzynth/spotify-syncer.git"
+  },
+  "keywords": [
+    "spotify",
+    "youtube",
+    "playlist",
+    "playlists",
+    "import",
+    "importer",
+    "sync",
+    "syncer"
+  ],
+  "author": "Flügerl",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/vinzynth/spotify-syncer/issues"
+  },
+  "homepage": "https://github.com/vinzynth/spotify-syncer#readme"
+}
