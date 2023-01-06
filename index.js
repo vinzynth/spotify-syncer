@@ -4,7 +4,7 @@ const {syncPlaylist} = require("./src/syncer");
 
 (async () => {
     const {url} = await inquirer.prompt([{
-        type: 'input', name: 'url', message: 'Which YouTube playlist to import?', default: 'https://www.youtube.com/watch?v=FsSBXr5sOcc&list=PL11SmZAO8BYZh7QQYncE4zQrTXkt3XAt1&index=93'
+        type: 'input', name: 'url', message: 'Which YouTube playlist to import?'
     }]);
 
     const startIdx = url.indexOf('list=') + 5;
