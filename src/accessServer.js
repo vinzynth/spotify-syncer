@@ -27,6 +27,7 @@ const API_SCOPES = [
 ];
 
 const credentialFile = path.resolve(process.argv[2] ?? 'credentials.json');
+const tokenFile = path.resolve(__dirname, '..', 'token.json');
 
 const spotifyApi = new SpotifyWebApi({
     redirectUri: `http://localhost:${PORT}/callback`,
@@ -61,20 +62,22 @@ app.get('/callback', (req, res) => {
 
             const tokens = {access_token, refresh_token};
 
-            fs.writeFileSync(path.resolve(__dirname, '..', 'tokens.json'), JSON.stringify(tokens, null, 4));
+            fs.writeFileSync(tokenFile, JSON.stringify(tokens, null, 4));
 
-            console.log(`Successfully retrieved access token. Expires in ${expires_in} s.`);
+            console.log(`Successfully retrieved access token. Expires in ${expires_in}s.`);
             res.send('Success! You can now close the window.');
 
             setInterval(async () => {
                 const data = await spotifyApi.refreshAccessToken();
                 const access_token = data.body['access_token'];
+                const expires_in = data.body['expires_in'];
 
                 spotifyApi.setAccessToken(access_token);
 
                 tokens.access_token = access_token;
+                tokens.expires_in = expires_in;
 
-                fs.writeFileSync(path.resolve(__dirname, '..', 'tokens.json'), JSON.stringify(tokens, null, 4));
+                fs.writeFileSync(tokenFile, JSON.stringify(tokens, null, 4));
 
                 console.log('The access token has been refreshed!');
             }, expires_in / 2 * 1000);
