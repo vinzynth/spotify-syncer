@@ -3,6 +3,8 @@ NodeJS tool to create Spotify playlists from given YouTube playlists.
 
 ## Setup
 
+### Spotify API
+
 * Log in on [Spotify Developers](https://developer.spotify.com/dashboard/applications) and create
 a new Application.
 * Add (http://localhost:8888/callback) as redirect URI in the application settings.
@@ -20,6 +22,13 @@ the Spotify api to create playlists and add song.
 * **DO NOT SHARE THIS TOKEN FILE WITH ANYONE**.
 * Note: the server automatically updates the `access_token` based on if's expiration time if you leave it 
 running, but that is optional. You can stop it now.
+
+### YouTube API
+
+* Log into the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) and create a new
+OAuth client ID. Choose `Desktop app` as application type.
+* Download the JSON with the client credentials. Rename it to `credentialsYT.json`.
+* 
 
 ## Usage
 
