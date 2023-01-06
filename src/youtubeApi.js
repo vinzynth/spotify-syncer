@@ -35,7 +35,7 @@ const oAuth2Client = () => {
     return oAuth2Client;
 }
 
-google.options({auth: oAuth2Client});
+google.options({auth: oAuth2Client()});
 
 const yt = google.youtube("v3");
 
@@ -82,6 +82,7 @@ async function getVideoDetails(ids = []) {
 }
 
 module.exports = {
+    oAuth2Client,
     getPlaylist,
     getVideoDetails
 };

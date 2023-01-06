@@ -2,8 +2,8 @@ const SpotifyWebApi = require('spotify-web-api-node');
 const fs = require('fs');
 const path = require('path');
 
-const credentialFile = path.resolve(__dirname, '..', 'credentials.json');
-const tokenFile = path.resolve(__dirname, '..', 'token.json');
+const credentialFile = path.resolve(__dirname, '..', 'credentialsSpotify.json');
+const tokenFile = path.resolve(__dirname, '..', 'tokenSpotify.json');
 
 const token = require(tokenFile);
 

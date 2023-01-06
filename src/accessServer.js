@@ -3,9 +3,10 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const open = require('open');
+const {oAuth2Client} = require("./youtubeApi");
 
-const PORT = 8888;
-const API_SCOPES = [
+const PORT = 80;
+const SPOTIFY_API_SCOPES = [
     'ugc-image-upload',
     'user-read-playback-state',
     'user-modify-playback-state',
@@ -26,21 +27,62 @@ const API_SCOPES = [
     'user-follow-read',
     'user-follow-modify'
 ];
+const YOUTUBE_API_SCOPES = [
+    'https://www.googleapis.com/auth/youtube'
+]
 
-const credentialFile = path.resolve(process.argv[2] ?? 'credentials.json');
-const tokenFile = path.resolve(__dirname, '..', 'token.json');
+const credentialFileSpotify = path.resolve(__dirname, '..', 'credentialsSpotify.json');
+const tokenFileSpotify = path.resolve(__dirname, '..', 'tokenSpotify.json');
+const tokenFileYT = path.resolve(__dirname, '..', 'tokenYT.json');
 
 const spotifyApi = new SpotifyWebApi({
     redirectUri: `http://localhost:${PORT}/callback`,
-    ...require(credentialFile)
+    ...require(credentialFileSpotify)
 });
+
+const youtubeOAuthClient = oAuth2Client();
 
 const app = express();
 
-app.get('/login', (req, res) => {
-    res.redirect(spotifyApi.createAuthorizeURL(API_SCOPES));
+app.get('/spotify', (req, res) => {
+    res.redirect(spotifyApi.createAuthorizeURL(SPOTIFY_API_SCOPES));
 });
 
+app.get('/youtube', (req, res) => {
+    res.redirect(youtubeOAuthClient.generateAuthUrl({
+        access_type: 'offline',
+        scope: YOUTUBE_API_SCOPES,
+    }));
+});
+
+let tokenReceived = false;
+// Google/YouTube OAuth callback
+app.get('/', (req, res) => {
+    const code = req.query.code;
+    if (!code) {
+        res.status(500).send('Youtube token code missing');
+        return;
+    }
+
+    youtubeOAuthClient.getToken(code, (err, token) => {
+        if (err) {
+            res.status(500).send('Could not fetch YouTube token: ' + err);
+            return;
+        }
+        youtubeOAuthClient.setCredentials(token);
+
+        fs.writeFileSync(tokenFileYT, JSON.stringify(token, null, 4));
+
+        console.log('Successfully retrieved YouTube access token.');
+        res.send('Success! You can close this tab now.');
+
+        if (tokenReceived)
+            process.exit(0);
+        else tokenReceived = true;
+    });
+});
+
+// Spotify OAuth callback
 app.get('/callback', (req, res) => {
     const error = req.query.error;
     const code = req.query.code;
@@ -56,41 +98,30 @@ app.get('/callback', (req, res) => {
         .then(data => {
             const access_token = data.body['access_token'];
             const refresh_token = data.body['refresh_token'];
-            const expires_in = data.body['expires_in'];
 
             spotifyApi.setAccessToken(access_token);
             spotifyApi.setRefreshToken(refresh_token);
 
             const tokens = {access_token, refresh_token};
 
-            fs.writeFileSync(tokenFile, JSON.stringify(tokens, null, 4));
+            fs.writeFileSync(tokenFileSpotify, JSON.stringify(tokens, null, 4));
 
-            console.log(`Successfully retrieved access token. Expires in ${expires_in}s.`);
-            res.send('Success! You can now close the window.');
+            console.log(`Successfully retrieved Spotify access token.`);
+            res.send('Success! You can close this tab now.');
 
-            setInterval(async () => {
-                const data = await spotifyApi.refreshAccessToken();
-                const access_token = data.body['access_token'];
-                const expires_in = data.body['expires_in'];
-
-                spotifyApi.setAccessToken(access_token);
-
-                tokens.access_token = access_token;
-                tokens.expires_in = expires_in;
-
-                fs.writeFileSync(tokenFile, JSON.stringify(tokens, null, 4));
-
-                console.log('The access token has been refreshed!');
-            }, expires_in / 2 * 1000);
+            if (tokenReceived)
+                process.exit(0);
+            else tokenReceived = true;
         })
         .catch(error => {
-            console.error('Error getting Tokens:', error);
-            res.send(`Error getting Tokens: ${error}`);
+            console.error('Error getting Spotify token:', error);
+            res.send(`Error getting Spotify tokens: ${error}`);
         });
 });
 
 app.listen(PORT, () => {
-    console.log(`Access Server up. Now log in at http://localhost:${PORT}/login with your browser.`)
+    console.log('Access Server up on port', PORT);
 
-    open(`http://localhost:${PORT}/login`);
+    open(`http://localhost:${PORT}/spotify`);
+    open(`http://localhost:${PORT}/youtube`);
 });
