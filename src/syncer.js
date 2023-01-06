@@ -55,11 +55,13 @@ async function syncPlaylist(playlistId, title, description) {
         const initWords = [...new Set(search.split(' ').filter(i => i))];
         const sts = [];
 
+        // Split the word list in search terms
         for (let i = 0; i < initWords.length; i++)
             sts.push(initWords.slice(i));
         for (let i = 0; i < initWords.length - 1; i++)
             sts.push(initWords.slice(0, initWords.length - i - 1));
 
+        // Search for the longest search terms first, since it should return the most specific results
         sts.sort((a, b) => b.length - a.length);
 
         let items = [];
@@ -68,14 +70,14 @@ async function syncPlaylist(playlistId, title, description) {
         for (const sta of sts) {
             const st = sta.join(' ');
 
-            const {body: {tracks: {items: fi}}} = await spotifyApi.searchTracks(st);
+            const {body: {tracks: {items: foundItems}}} = await spotifyApi.searchTracks(st);
 
-            if (!fi?.length) {
+            if (!foundItems?.length) {
                 exMatch = false;
                 continue;
             }
 
-            items = fi;
+            items = foundItems;
             break;
         }
 

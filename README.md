@@ -1,5 +1,5 @@
 # spotify-syncer
-NodeJS tool to create Spotify playlists from given YouTube playlists.
+NodeJS CLI tool to create Spotify playlists from given YouTube playlists.
 
 ## Setup
 
@@ -41,3 +41,13 @@ accordingly.
 
 ## Usage
 
+Once set up just run `index.js` or `npm start`. The script asks you for a playlist. You can paste the link to the
+YouTube playlist, or a video playing from that playlist.
+
+## Limitations
+
+This tool uses video title and music metadata tags from YouTube and tries to match it with search results from Spotify.
+For the most part this performs well, however sometimes special remixes are not properly found and the original (more 
+popular) version gets added to the playlist instead. Sometimes videos on YouTube have neither a title, nor a music 
+metadata added by YouTube. Those can't be matched. Some videos use unicode symbols or emojis in their titles, which the script
+tries to normalize utilizing a 3rd party library. Video titles not made of latin characters seem to be matched correctly.
